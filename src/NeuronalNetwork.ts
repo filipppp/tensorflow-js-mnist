@@ -24,7 +24,7 @@ export class NeuronalNetwork{
     };
 
     if (!modelPath) {
-      this._model = this.createModel("sigmoid");
+      this._model = this.createModel();
       this._model.compile(this._compileArgs);
     }
     this._data = mnist.set(3000, 300);
@@ -45,7 +45,7 @@ export class NeuronalNetwork{
     for (let i = 0; i < finalOutput.length; i++) {
       finalTemp.push(finalOutput[i]);
       expectedTemp.push(expectedOutput[i]);
-      if(i % 10 === 0) {
+      if(i % 10 === 0 && i !== 0) {
         string += (`
         Excpected Output: ${expectedTemp}
         Final Output:     ${finalTemp}
@@ -102,25 +102,26 @@ export class NeuronalNetwork{
   }
 
   private createModel(): Model  {
-    const input = tf.input({
-      shape: [784]
-    });
-    const denseLayer1 = tf.layers.dense({
-      units: 30,
-      activation: this._activation
-    });
-    const denseLayer2 = tf.layers.dense({
-      units: 30,
-      activation: this._activation
-    });
-    const output = tf.layers.dense({
-      units: 10,
-      activation: this._activation
-    });
-
-    return tf.model({
-      inputs: input,
-      outputs: output.apply(denseLayer2.apply(denseLayer1.apply(input)))
+    return tf.tidy(() => {
+      const input = tf.input({
+        shape: [784]
+      });
+      const denseLayer1 = tf.layers.dense({
+        units: 30,
+        activation: this._activation
+      });
+      const denseLayer2 = tf.layers.dense({
+        units: 30,
+        activation: this._activation
+      });
+      const output = tf.layers.dense({
+        units: 10,
+        activation: this._activation
+      });
+      return tf.model({
+        inputs: input,
+        outputs: output.apply(denseLayer2.apply(denseLayer1.apply(input)))
+      });
     });
   }
 
